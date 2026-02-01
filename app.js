@@ -20,12 +20,26 @@ app.get('/todos', (req, res) => {
 app.post('/todos', (req, res) => {
     const newTodo = { id: todos.length + 1, ...req.body }; //auto-generate id
     todos.push(newTodo);
+    
     if (!newTodo.task) {
-        return res.status(400).json({ error: 'Task field is required' });
-    } // require that 'task' field is provided
-    if (newTodo.completed === undefined) {
+        return res.status(400).json({ error: 'Task field is required' });  
+    }else if (newTodo.completed === undefined) {
         newTodo.completed = false;
     }// auto-set completed to false if not provided
+
+
+    // validating text field
+    if (typeof newTodo.task !== 'string' || typeof newTodo.completed !== 'boolean'){
+        todos.pop(); // remove the invalid todo
+        return res.status(400).json({ error: 'Invalid data types for task or completed fields' });
+    }   
+
+    // check for duplicate tasks
+    if (todos.some(t => t.task === newTodo.task)){
+        todos.pop(); // remove the duplicate todo
+        return res.status(400).json({error: 'Task already exist'})
+    }
+
     res.status(201).json(newTodo); //send created todo as json response
 });
 
